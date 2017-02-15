@@ -41,6 +41,7 @@ int main(int argc, char* argv[]){
 	if (my_rank ==0){
 
 
+//dsv
 
 		/* create message */
 		printf("Master process - start, id = %d", my_rank);
