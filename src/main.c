@@ -6,6 +6,7 @@
 #include "my_timers.h"
 
 #define HIST_SIZE 256
+#define ROOT 0
 
 int main(int argc, char* argv[]) {
 	int my_rank; /* rank of process */
@@ -15,9 +16,12 @@ int main(int argc, char* argv[]) {
 	int tag = 0; /* tag for messages */
 	char message[100]; /* storage for message */
 	MPI_Status status; /* return status for receive */
-	int root = 0;
+
 	int bitmap_len, sub_bitmap_len;
-	char* sub_bitmap;
+
+	unsigned char* bitmap;
+	unsigned char* sub_bitmap;
+
 	int i; /* uniwersal counter */
 	int check = 0; /**/
 	int hist_table[HIST_SIZE] = { 0 };
@@ -35,22 +39,24 @@ int main(int argc, char* argv[]) {
 
 	//get image
 	FreeImage_Initialise(TRUE);
-	FIBITMAP *bitmap = FreeImage_Load(FIF_JPEG, "../img/lenna512x512_gray.jpg",
+	FIBITMAP * fibitmap = FreeImage_Load(FIF_JPEG, "../img/lenna512x512_gray.jpg",
 			JPEG_DEFAULT);
-	if (!bitmap) {
+	if (!fibitmap) {
 		printf("nie zaladowano obrazu");
 		return 0;
 	}
 
 	//image properties
-	int width = FreeImage_GetWidth(bitmap);
+	int width = FreeImage_GetWidth(fibitmap);
 
-	int height = FreeImage_GetHeight(bitmap);
-	int bytespp = FreeImage_GetLine(bitmap) / width;
+	int height = FreeImage_GetHeight(fibitmap);
+	int bytespp = FreeImage_GetLine(fibitmap) / width;
 	bitmap_len = width * height;
-	printf("H%d %d %d", height, bytespp, bitmap_len);
+//	printf("H%d %d %d", height, bytespp, bitmap_len);
 
-	if (my_rank == root) {
+	bitmap = FreeImage_GetBits(fibitmap);
+
+	if (my_rank == ROOT) {
 
 		printf("Hello MPI World From process 0: Num processes: %d\n", p);
 		for (source = 1; source < p; source++) {
@@ -79,7 +85,7 @@ int main(int argc, char* argv[]) {
 	sub_bitmap_len = bitmap_len / p;
 	sub_bitmap = (char*)malloc(sub_bitmap_len);
 	MPI_Scatter(bitmap, sub_bitmap_len, MPI_CHAR, sub_bitmap, sub_bitmap_len,
-			MPI_CHAR, root, MPI_COMM_WORLD);
+			MPI_CHAR, ROOT, MPI_COMM_WORLD);
 
 	/*each process calc his own histogram on his amount of bitmaps*/
 	for (i = 0; i < sub_bitmap_len; i++) {
@@ -87,12 +93,12 @@ int main(int argc, char* argv[]) {
 	}
 
 	/*sum up all sub_histogram's to one */
-	MPI_Reduce(sub_hist_table, hist_table, HIST_SIZE, MPI_INT, MPI_SUM, root,
+	MPI_Reduce(sub_hist_table, hist_table, HIST_SIZE, MPI_INT, MPI_SUM, ROOT,
 			MPI_COMM_WORLD);
 
-	if (my_rank == root) {
+	if (my_rank == ROOT) {
 		for (i = 0; i < HIST_SIZE; i++) {
-			printf("%d ", hist_table[i]);
+		//	printf("%d ", hist_table[i]);
 			check += hist_table[i];
 		}
 		printf("\ncheck = %d, nummber of pixel = %d ", check, bitmap_len);
