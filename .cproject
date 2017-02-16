@@ -40,6 +40,7 @@
 								</option>
 								<option id="gnu.c.link.option.libs.1899566810" name="Libraries (-l)" superClass="gnu.c.link.option.libs" useByScannerDiscovery="false" valueType="libs">
 									<listOptionValue builtIn="false" value="freeimage"/>
+									<listOptionValue builtIn="false" value="plot"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.1603009306" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
